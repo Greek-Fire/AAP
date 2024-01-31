@@ -4,3 +4,15 @@ filter_plugin/__pycache__
 filter_plugin/__pycache__/
 bash
 awx
+.*.swp
+.*.swo
+.*.swn
+__pychace__
+*.pyc
+*.pyo
+.tox
+devroles-system-*.tar.gz
+log
+.cache
+junit.xml
+.direnv

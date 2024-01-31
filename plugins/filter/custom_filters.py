@@ -3,8 +3,11 @@ class FilterModule(object):
     def filters(self):
         return {
             'copy_dict': self.copy_dict,
-            'copy_list': self.copy_list
+            'copy_list': self.copy_list,
+            'generate_survey': self.generate_survey
         }
+    def generate_survey(self, item, key):
+        return (item, key)
     
     def copy_list(self, item, key):
         """

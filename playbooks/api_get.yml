@@ -1,7 +1,0 @@
-- hosts: localhost
-  gather_facts: false
-  collections:
-  - ansible.controller
-  tasks:
-  - set_fact:
-      controller_settings: "{{ lookup('controller_api', 'project') }}"
