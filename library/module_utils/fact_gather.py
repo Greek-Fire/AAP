@@ -38,6 +38,8 @@ class Parameters:
         self.session = satellite_session
 
     def get_parameters(self):
+        aggregated_parameters = {}  # This will store all parameters in a single dictionary
+
         try:
             url = f"{self.session.server_url}/api/v2/{self.endpoint}"
             response = self.session.session.get(url)
@@ -45,19 +47,16 @@ class Parameters:
                 raise EmbeddedModuleFailure(f"Failed to get parameters from {url} API: {response.text}")
 
             data = response.json().get('results', [])
-            parameters = []
 
             for item in data:
                 item_url = f"{url}/{item['id']}"
                 results = self.session.session.get(item_url).json()
-                _dict = {
-                    results['name']: [{'name': d['name'], 'value': d['value']} for d in results['parameters']]
-                }
-                parameters.append(_dict)
+                aggregated_parameters[results['name']] = [{'name': d['name'], 'value': d['value']} for d in results['parameters']]
 
-            return parameters
+            return aggregated_parameters
 
         except requests.exceptions.RequestException as e:
             raise ConnectionError(f"Could not get parameters: {to_native(e)}")
         finally:
             self.session.disconnect_session()
+
