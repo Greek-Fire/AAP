@@ -3,10 +3,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import requests
 from ansible.module_utils.basic import AnsibleModule
-from ansible.errors import AnsibleModuleError
 from ansible.module_utils._text import to_native
+from ansible.module_utils.fact_gather import SatelliteSession, Parameters
 
 DOCUMENTATION = '''
 ---
@@ -34,44 +33,6 @@ EXAMPLES = '''
     validate_certs: false
 '''
 
-class SatelliteParameters:
-    def __init__(self, name, server_url, username, password, validate_certs):
-        self.server_url = server_url
-        self.username = username
-        self.password = password
-        self.validate_certs = validate_certs
-        self.endpoint = name
-
-    def _make_request(self, url):
-        """Helper method to make a request and handle exceptions."""
-        try:
-            response = self.session.get(url)
-            if response.status_code != 200:
-                raise Exception(f"Failed to get data from {url} API: {response.text}")
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            raise AnsibleModuleError(f"HTTP request failed: {to_native(e)}")
-
-    def get_parameters(self):
-        self.session = requests.Session()
-        self.session.auth = (self.username, self.password)
-        self.session.verify = self.validate_certs
-
-        url = f"{self.server_url}/api/v2/{self.endpoint}"
-        data = self._make_request(url).get('results', [])
-
-        parameters = []
-        for item in data:
-            item_url = f"{url}/{item['id']}"
-            results = self._make_request(item_url)
-            _dict = {
-                results['name']: [{'name': d['name'], 'value': d['value']} for d in results['parameters']]
-            }
-            parameters.append(_dict)
-
-        self.session.close()
-        return parameters
-
 def main():
     module_args = {
         'name': {'type': 'str', 'required': True},
@@ -89,16 +50,20 @@ def main():
         module.exit_json(**results)
 
     try:
-        satellite = SatelliteParameters(
-            module.params['name'], 
+        session = SatelliteSession(
             module.params['server_url'], 
             module.params['username'], 
             module.params['password'], 
             module.params['validate_certs']
         )
-        results['parameters'] = satellite.get_parameters()
+        session.establish_session()
+
+        parameters = Parameters(module.params['name'], session)
+        results['parameters'] = parameters.get_parameters()
     except Exception as e:
         module.fail_json(msg=f"Error retrieving parameters: {to_native(e)}")
+    finally:
+        session.disconnect_session()
 
     module.exit_json(**results)
 
