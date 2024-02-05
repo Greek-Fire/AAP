@@ -1,0 +1,15 @@
+- name: Launch Job
+  job_lanuch:
+    controller_oauth_token: "{{ item.controller_oauth_token | default(omit) }}"
+    controller_username:    "{{ item.controller_username | default(omit) }}"
+    controller_password: "{{ item.controller_password | default(omit) }}"
+    controller_host: "{{ item.controller_host  | default(omit) }}"
+    validate_certs:  "{{ item.validate_certs   | default(omit) }}"
+    controller_config_file: "{{ item.controller_config_file | default(omit) }}"
+    job_template: "{{ item.job_template_name }}"
+    job_type:   "{{ item.job_type | default('run') }}"
+    credentials: "{{ item.credentials }}"
+    diff_mode:   "{{ item.diff_mode }}"
+    execu
+
+    extra_vars: "{{ item.extra_vars }}"
